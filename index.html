@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>接口测试工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 150px;
+            font-family: monospace;
+        }
+        /* 调整响应头和响应体文本区域的高度 */
+        #response-headers {
+            height: 100px; /* 响应头高度变小，可根据需要调整 */
+        }
+        #response-body {
+            height: 400px; /* 响应体高度变大，可根据需要调整 */
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .response-info {
+            margin-top: 20px;
+        }
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            border-radius: 4px 4px 0 0;
+        }
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 10px 16px;
+            transition: 0.3s;
+            color: black;
+        }
+        .tab button:hover {
+            background-color: #ddd;
+        }
+        .tab button.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .tabcontent {
+            display: none;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+        }
+        .visible {
+            display: block;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .status.success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .status.error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        .flex-container {
+            display: flex;
+            gap: 10px;
+        }
+        .flex-container > * {
+            flex: 1;
+        }
+        .history-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        .history-item:hover {
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>接口测试工具</h1>
+        
+        <div class="tab">
+            <button class="tablinks active" onclick="openTab(event, 'request-tab')">请求</button>
+            <button class="tablinks" onclick="openTab(event, 'history-tab')">历史记录</button>
+        </div>
+        
+        <div id="request-tab" class="tabcontent visible">
+            <div class="form-group">
+                <label for="method">请求方法</label>
+                <select id="method">
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                    <option value="PUT">PUT</option>
+                    <option value="DELETE">DELETE</option>
+                    <option value="PATCH">PATCH</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="url">请求URL</label>
+                <input type="text" id="url" placeholder="https://api.example.com/endpoint">
+            </div>
+            
+            <div class="form-group">
+                <label>请求头</label>
+                <textarea id="headers" placeholder='{
+    "Content-Type": "application/json",
+    "Authorization": "Bearer token"
+}'></textarea>
+                <!-- 确保该元素存在 -->
+                <div id="content-type-tip" style="color: red; margin-top: 5px;"></div>
+            </div>
+            
+            <div class="form-group">
+                <label>请求体 (仅适用于POST, PUT, PATCH)</label>
+                <textarea id="body" placeholder='{
+    "key": "value"
+}'></textarea>
+                <button onclick="formatJSON()">格式化JSON</button>
+                <button onclick="jsonToForm()">JSON转表单</button>
+                <button onclick="formToJson()">表单转JSON</button>
+            </div>
+            
+            <button onclick="sendRequest()">发送请求</button>
+            
+            <div class="response-info">
+                <h3>响应信息</h3>
+                <div class="flex-container">
+                    <div class="form-group">
+                        <label>状态码</label>
+                        <div id="status-code" class="status"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>响应时间</label>
+                        <div id="response-time"></div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>响应头</label>
+                    <textarea id="response-headers" readonly></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>响应体</label>
+                    <textarea id="response-body" readonly></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <div id="history-tab" class="tabcontent">
+            <h3>请求历史</h3>
+            <div id="history-list"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
