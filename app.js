@@ -118,6 +118,13 @@ async function sendRequest() {
     }
 }
 
+function responseBodyToJson(){
+    var responseBody =document.getElementById("response-body").value;
+
+    responseBody = JSON.stringify( JSON.parse(responseBody), null, 2);
+    document.getElementById("response-body").value = responseBody;
+}
+
 // 历史记录功能
 function saveToHistory(requestData) {
     let history = JSON.parse(localStorage.getItem("apiHistory") || "[]");
